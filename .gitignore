@@ -3,7 +3,7 @@
 # 2 - Exclude adding typical temp/backup/system files
 # 3 - Exclude adding all subdirectories except extracted VBA and XML directories
 
-# last updated 16/2/2019
+# last updated 15/8/2019
 
 # exclude all subdirectories (& content) unless specifically allowed
 **/*
@@ -24,6 +24,9 @@
 # include extracted *.VBA & *.XML directories & contents
 !/*.XML/*
 !/*.VBA/*
+
+# include images directory
+!/Images/*
 
 # include Excel files in the root directory of the repository
 !/*.xl*
