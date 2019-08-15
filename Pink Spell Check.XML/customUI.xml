@@ -1,0 +1,11 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui">
+	<ribbon startFromScratch="false">
+		<tabs>
+			<tab idMso="TabHome">
+				<group id="pink_spell" insertAfterMso="GroupEditing" label="Pink">
+					<button id="Pink_spell_check" imageMso="Spelling" label="Highlight Spell Check" showLabel="false" onAction="Pink_Spell_Check_onAction"/>
+				</group>
+			</tab>
+		</tabs>
+	</ribbon>
+</customUI>
