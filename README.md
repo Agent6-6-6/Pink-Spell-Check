@@ -20,4 +20,5 @@
 
 ### Change Log
 v1.100 - Corrected left over code from the addin this code was refactored from that was causing an error
+
 v1.000 - Initial release
