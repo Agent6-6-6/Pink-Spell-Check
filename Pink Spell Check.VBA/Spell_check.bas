@@ -2,64 +2,57 @@ Attribute VB_Name = "Spell_check"
 
 Private Sub Pink_Spell_Check_onAction(control As IRibbonControl)
 
-    If Application.Run("Ribbon_custom_controls_module.valid_XML") = True Then     'PREVENTS REMOVAL OF VISIBILITY CALLBACK
+'SETUP ERRORHANDLER FOR USER CANCELLING THE SPELLCHECK
+    Application.EnableCancelKey = xlErrorHandler
 
-        'disable user interupting code (reset to default at end of code automatically).
-        Application.EnableCancelKey = xlDisabled
+    'INITIALISE VARIABLES
+    Dim WS As Worksheet
+    Dim StartTime As Double
+    Dim SecondsElapsed As Double
+    Dim DisplayTime As Integer
+    Dim Scope_msg As String
 
-        On Error GoTo handleCancel
+    'INITIALISE NUMBER OF SECONDS TO DISPLAY STATUSBAR MESSAGE
+    DisplayTime = 10
 
-        'SETUP ERRORHANDLER FOR USER CANCELLING THE SPELLCHECK
-        Application.EnableCancelKey = xlErrorHandler
-
-        'INITIALISE VARIABLES
-        Dim WS As Worksheet
-        Dim StartTime As Double
-        Dim SecondsElapsed As Double
-        Dim DisplayTime As Integer
-        Dim Scope_msg As String
-
-        'INITIALISE NUMBER OF SECONDS TO DISPLAY STATUSBAR MESSAGE
-        DisplayTime = 10
-
-        'CHECK FOR PROTECTED SHEETS AND EXIT IF FOUND
-        For Each WS In ActiveWorkbook.Worksheets
-            If WS.ProtectContents = True Then
-                MsgBox "There are protected Sheets in this Workbook. Please unprotect the Sheets to run this macro"
-                Exit Sub
-            End If
-        Next
-
-        'SHOW 'Spelling_form' USERFORM
-        Spelling_form.Show
-        DoEvents
-
-        'STORE TIME WHEN MACRO STARTS
-        StartTime = timer
-
-        If Spelling_form.check_all = True Then
-            'CALL SPELLING HIGHLIGHT MACRO WITH 'ActiveSheet.UsedRange' AS SCOPE
-            CheckSpelling ActiveSheet.UsedRange
-            Scope_msg = "current Sheet"
-        Else
-            'CALL SPELLING HIGHLIGHT MACRO WITH CURRENT 'Selection' AS SCOPE
-            CheckSpelling Selection
-            Scope_msg = "current Selection"
+    'CHECK FOR PROTECTED SHEETS AND EXIT IF FOUND
+    For Each WS In ActiveWorkbook.Worksheets
+        If WS.ProtectContents = True Then
+            MsgBox "There are protected Sheets in this Workbook. Please unprotect the Sheets to run this macro"
+            Exit Sub
         End If
+    Next
 
-        'DETERMINE HOW MANY SECONDS THE CODE TOOK TO RUN
-        SecondsElapsed = Round(timer - StartTime, 2)
-        'DISPLAY FINISH MESSAGE IN THE STATUSBAR
-        Application.StatusBar = "Highlight of spelling within " & Scope_msg & " completed successfully. Check took " & SecondsElapsed & " seconds"
-        DoEvents
-        'CLEAR STATUSBAR AFTER 'DisplayTime' SECONDS
-        Application.OnTime Now + TimeSerial(0, 0, DisplayTime), "ClearStatusBar_Spelling"
+    'SHOW 'Spelling_form' USERFORM
+    Spelling_form.Show
+    DoEvents
+
+    'STORE TIME WHEN MACRO STARTS
+    StartTime = timer
+
+    If Spelling_form.check_all = True Then
+        'CALL SPELLING HIGHLIGHT MACRO WITH 'ActiveSheet.UsedRange' AS SCOPE
+        CheckSpelling ActiveSheet.UsedRange
+        Scope_msg = "current Sheet"
+    Else
+        'CALL SPELLING HIGHLIGHT MACRO WITH CURRENT 'Selection' AS SCOPE
+        CheckSpelling Selection
+        Scope_msg = "current Selection"
+    End If
+
+    'DETERMINE HOW MANY SECONDS THE CODE TOOK TO RUN
+    SecondsElapsed = Round(timer - StartTime, 2)
+    'DISPLAY FINISH MESSAGE IN THE STATUSBAR
+    Application.StatusBar = "Highlight of spelling within " & Scope_msg & " completed successfully. Check took " & SecondsElapsed & " seconds"
+    DoEvents
+    'CLEAR STATUSBAR AFTER 'DisplayTime' SECONDS
+    Application.OnTime Now + TimeSerial(0, 0, DisplayTime), "ClearStatusBar_Spelling"
 
 handleCancel:
-        If Err = 18 Then
-            MsgBox "Spellcheck Cancelled"
-        End If
+    If Err = 18 Then
+        MsgBox "Spellcheck Cancelled"
     End If
+
 
 End Sub
 
