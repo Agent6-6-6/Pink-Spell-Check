@@ -1,4 +1,5 @@
 Attribute VB_Name = "Spell_check"
+Option Explicit
 
 Private Sub Pink_Spell_Check_onAction(control As IRibbonControl)
 
@@ -53,7 +54,6 @@ handleCancel:
         MsgBox "Spellcheck Cancelled"
     End If
 
-
 End Sub
 
 Sub CheckSpelling(R As Range)
@@ -61,7 +61,7 @@ Sub CheckSpelling(R As Range)
     Application.ScreenUpdating = False
     Application.EnableEvents = False
 
-    On Error GoTo handleCancel
+    'On Error GoTo handleCancel
 
     'SETUP ERRORHANDLER FOR USER CANCELLING THE SPELLCHECK ROUTINE
     Application.EnableCancelKey = xlErrorHandler
@@ -245,7 +245,7 @@ End Sub
 
 Sub ClearStatusBar_Spelling()
 'CLEAR MESSAGE FROM STATUS BAR
-Application.StatusBar = False
+    Application.StatusBar = False
 End Sub
 
 
@@ -269,3 +269,280 @@ Private Function IsCharAlphaNumeric(strValue As String, Position As Double, Left
     End Select
 
 End Function
+
+'    ActiveSheet.Range("Top_Titles").Font.Color = RGB(255, 255, 255)        ' for peer review log as forcing white text to black on black background
+'    ActiveSheet.Range("General_specification_comments").Font.Color = RGB(255, 255, 255)
+'    ActiveSheet.Range("Design_comments").Font.Color = RGB(255, 255, 255)
+'    ActiveSheet.Range("Drawing_comments").Font.Color = RGB(255, 255, 255)
+'    ActiveSheet.Range("Modelling_comments").Font.Color = RGB(255, 255, 255)
+'_____________________________________________________________________________________
+'OLDER CODE OR UNTESTED CODE BELOW THIS POINT
+
+''''https://techniclee.wordpress.com/2010/07/21/isletter-function-for-vba/
+'''
+'''Function IsLetter(strValue As String) As Boolean
+'''    Dim intPos As Integer
+'''    For intPos = 1 To Len(strValue)
+'''        Select Case Asc(Mid(strValue, intPos, 1))
+'''            Case 65 To 90, 97 To 122
+'''                IsLetter = True
+'''            Case Else
+'''                IsLetter = False
+'''                Exit For
+'''        End Select
+'''    Next
+'''End Function
+
+
+
+'https://stackoverflow.com/questions/41671949/finding-punctuation-within-vba-string-from-the-right-side
+Public Sub RunMe()
+    Const punc As String = "!""*()-[]{};':@~,./<>?"
+
+Debug.Print InStrRevAny("TE.ST))", punc)
+End Sub
+'Private Function InStrRevAny(refText As String, chars As String) As Long
+'    Dim i As Long, j As Long
+'
+'    For i = Len(refText) To 1 Step -1
+'        For j = 1 To Len(chars)
+'            'Debug.Print (Mid(refText, i, 1))
+'            If Mid(refText, i, 1) = Mid(chars, j, 1) Then
+'                InStrRevAny = i
+'                Exit Function
+'            End If
+'        Next
+'    Next
+'End Function
+Private Function Drop_right_punctuation_end_position(refText As String, chars As String) As Long
+    Dim I As Long, J As Long
+
+    For I = 1 To Len(refText) Step 1
+        For J = 1 To Len(chars)
+            'Debug.Print Len(chars)
+            If Mid(refText, I, 1) = Mid(chars, J, 1) Then
+                Drop_right_punctuation_end_position = I - 1
+                Exit Function
+            End If
+        Next
+    Next
+End Function
+
+
+
+Private Function InStrRevAny(refText As String, chars As String) As Long
+    Dim I As Long, J As Long
+
+    For I = 1 To Len(refText) Step 1
+        For J = 1 To Len(chars)
+            'Debug.Print (Mid(refText, i, 1))
+            If Mid(refText, I, 1) = Mid(chars, J, 1) Then
+                InStrRevAny = I
+                Exit Function
+            End If
+        Next
+    Next
+End Function
+
+Sub HighlightMisspelledCells()
+    Dim cl As Range
+    For Each cl In ActiveSheet.UsedRange
+        If Not Application.CheckSpelling(Word:=cl.Value) Then    '
+            cl.Interior.Color = vbRed
+        End If
+    Next cl
+
+    'only seems to work on cells with low word count
+End Sub
+
+
+Sub HighlightMisspelledCells2()
+    Dim cl As Range
+    For Each cl In ActiveSheet.UsedRange
+        If Not Application.CheckSpelling(Word:=cl.Text) Then    '
+            cl.Interior.Color = vbRed
+        End If
+    Next cl
+
+    'only seems to work on cells with low word count
+End Sub
+
+
+Sub HighlightMisspelledWords()
+
+' Purpose: SpellChecks the entire sheet (or some other specified range) Cell-by-Cell and Word-by-Word,
+' highlighting in a color those Words and those Cells with misspelled Words.
+' This can run S-L-O-W since it is calling the SpellChecker for each individual Word.
+
+' Optionally can set the Column number that you want the text MISSPELLED inserted into
+' so that you can later sort the sheet on that Column to consolidate the problem Rows.
+' George Mason
+
+
+' You can specify a Range by indicating the upper left and the lower right Cell.
+' The default Range uses the entire used area of the Sheet.
+    Dim oRange As Excel.Range
+    'Set oRange = Range("D1:D500")
+    Set oRange = ActiveSheet.UsedRange
+
+    Application.ScreenUpdating = True
+
+    ' You can pick which Dictionary Language to spell check against.
+    ' There are many, but the following are the most likely.
+    Application.SpellingOptions.DictLang = msoLanguageIDEnglishUK    ' value 2057
+
+    ' Other possible spell check options.
+    Application.SpellingOptions.SuggestMainOnly = True
+    ' The following assumes you want the SpellChecker to ignore Uppercase things, like ACRONYMS.
+    Application.SpellingOptions.IgnoreCaps = True
+    Application.SpellingOptions.IgnoreMixedDigits = True
+    Application.SpellingOptions.IgnoreFileNames = True
+
+    ' For Cell Highlighting, there are 8 named colors you may choose from:
+    ' vbBlack, vbWhite, vbRed, vbGreen, vbBlue, vbYellow, vbMagenta, vbCyan.
+    Dim lCellHighlightColor As Long
+    lCellHighlightColor = vbYellow
+
+    ' For Word Highlighting, there are 8 named colors you may choose from:
+    ' vbBlack, vbWhite, vbRed, vbGreen, vbBlue, vbYellow, vbMagenta, vbCyan.
+    Dim lWordHighlightColor As Long
+    lWordHighlightColor = vbRed
+
+    ' You should set these next 3 items
+    ' if you want to have one Column used to mark ANY Cell misspellings for the entire Row.
+    Dim bColumnMarker As Boolean
+    'bColumnMarker = False
+    bColumnMarker = True
+
+    ' Column A = 1, Column B = 2, etc.
+    Dim iColumnToMark As Integer
+    iColumnToMark = 7
+
+    Dim sMarkerText As String
+    sMarkerText = "MISSPELLED"
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ' The values for the items above should be modified by the user, as necessary. '
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    On Error GoTo 0
+
+    Dim oCell As Object
+    Dim iLastRowProcessed As Integer
+    iLastRowProcessed = 0
+
+    For Each oCell In oRange
+
+        If ((bColumnMarker = True) And _
+            (iLastRowProcessed <> oCell.Row)) Then
+            ' When beginning to process each new Row, clear out any previous MISSPELLED marker.
+            iLastRowProcessed = oCell.Row
+            Cells(oCell.Row, iColumnToMark) = ""
+        End If
+        Rows(oCell.Row).Select
+
+        ' Boolean to track for ANY misspelling in the Cell.
+        Dim bResultCell As Boolean
+        bResultCell = True
+
+        ' First spell check the entire cell (if less than 256 chars).
+        ' This can catch some grammatical errors even if no spelling errors.
+        If (Len(oCell.Text) < 256) Then
+            bResultCell = Application.CheckSpelling(oCell.Text)
+        End If
+
+        Dim iTrackCharPos As Integer
+        iTrackCharPos = 1
+
+        ' Split the Text in the Cell into an array of words, using a Space as the delimiter.
+        Dim vWords As Variant
+        vWords = Split(oCell.Text, Chr(32), -1, vbBinaryCompare)
+        Dim I As Integer
+
+        ' Check the spelling of each word in the Cell.
+        For I = LBound(vWords) To UBound(vWords)
+
+            Dim iWordLen As Integer
+            iWordLen = Len(vWords(I))
+
+            Dim bResultWord As Boolean
+            ' Note that a Word longer than 255 characters will generate Error 13.
+            ' Any character string without any embedded space is considered a Word.
+            bResultWord = Application.CheckSpelling(Word:=vWords(I))
+
+            If (bResultWord = False) Then
+                ' Thinks it is misspelled.
+                ' Check for trailing punctuation and plural words like ACTION-EVENTs.
+                ' The following is crude and should be made more robust when there is time.
+                If (iWordLen > 1) Then
+                    Dim iWL As Integer
+                    For iWL = iWordLen To 1 Step -1
+                        If (Not (Mid(vWords(I), iWL, 1) Like "[0-9A-Za-z]")) Then
+                            vWords(I) = left(vWords(I), (iWL - 1))
+                        Else
+                            Exit For
+                        End If
+                    Next iWL
+                    If (Mid(vWords(I), iWL, 1) = "s") Then
+                        ' Last letter is lowercase "s".
+                        vWords(I) = left(vWords(I), (iWL - 1))
+                    End If
+                    ' Retest.
+                    bResultWord = Application.CheckSpelling(Word:=vWords(I))
+                End If
+            End If
+
+            If (bResultWord = True) Then
+                ' If this is an Uppercased and Hyphenated word, we should split and lowercase then check each portion.
+                If ((Len(vWords(I)) > 0) And (vWords(I) = UCase(vWords(I)))) Then
+                    ' Word is all Uppercase, check for hyphenation.
+                    Dim iHyphenPos As Integer
+                    iHyphenPos = InStr(1, vWords(I), "-")
+                    If (iHyphenPos > 0) Then
+                        ' Word is also hyphenated, split and lowercase then check each portion.
+                        Dim vHyphenates As Variant
+                        vHyphenates = Split(LCase(vWords(I)), "-", -1, vbBinaryCompare)
+                        Dim iH As Integer
+                        ' Check the spelling of each newly lowercased portion of the word.
+                        For iH = LBound(vHyphenates) To UBound(vHyphenates)
+                            bResultWord = Application.CheckSpelling(Word:=vHyphenates(iH))
+                            If (bResultWord = False) Then
+                                ' As soon as any portion is deemed misspelled, then done.
+                                Exit For
+                            End If
+                        Next iH
+                    End If
+                End If
+            End If
+
+            If (bResultWord = False) Then
+                bResultCell = False
+                ' Highlight just this misspelled word in the Cell.
+                oCell.Characters(iTrackCharPos, iWordLen).Font.Bold = True
+                oCell.Characters(iTrackCharPos, iWordLen).Font.Color = lWordHighlightColor
+            Else
+                ' Clear any previous Highlight on just this word.
+                oCell.Characters(iTrackCharPos, iWordLen).Font.Bold = False
+                oCell.Characters(iTrackCharPos, iWordLen).Font.Color = vbBlack
+            End If
+
+            iTrackCharPos = iTrackCharPos + iWordLen + 1
+
+        Next I
+
+        If (bResultCell = True) Then
+            ' The text contents of this Cell are NOT misspelled.
+            ' Remove any previous highlighting by setting the Fill Color to the "No Fill" value.
+            oCell.Interior.ColorIndex = xlColorIndexNone
+        Else
+            ' At least some of the text contents of this Cell are misspelled, so highlight the Cell.
+            oCell.Interior.Color = lCellHighlightColor
+            ' Mark the Row, if requested.
+            If (bColumnMarker = True) Then
+                Cells(oCell.Row, iColumnToMark) = sMarkerText
+            End If
+        End If
+
+    Next oCell
+
+End Sub

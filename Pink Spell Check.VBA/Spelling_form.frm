@@ -1,5 +1,5 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Spelling_form
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Spelling_form 
    Caption         =   "Highlight Spelling For Review"
    ClientHeight    =   1785
    ClientLeft      =   45
@@ -14,6 +14,11 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'LAST UPDATED WITH REVISION B OF STANDARD TEMPLATE
+'____________________________________________________________________________________________________________
+'B - updated form to automate and toggle types of checks
+'C.4 - REMOVED Check_all_capitals_BeforeUpdate MODULE AS NOT USED
+'____________________________________________________________________________________________________________
 Option Explicit
 Public check_all As Boolean
 
